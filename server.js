@@ -1,10 +1,18 @@
 const http = require('http')
+// this requires HTTP 
 const express = require('express')
+const { notEqual } = require('assert')
+var morgan = require('morgan')
+const { response } = require('express')
+//this requires express
 const app = express()
+//this will make express work with the keyword app to access express 
 const PORT = 2045
+//this is the port on the local host which we are listening to 
 app.listen(PORT)
 console.log(`Server running on port ${PORT}`)
-
+app.use(express.json())
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms'))
 
 
 
@@ -62,6 +70,54 @@ app.get('/api/persons/:id', (req, res) => {
 
     const id = Number(req.params.id)
     const bookerT = phonebook.find(bookerT => bookerT.id === id)
-    res.json(bookerT)
+    bookerT ? res.json(bookerT) : res.status(404).end()
 
+
+
+
+})
+
+app.delete('/api/phonebook/:id', (request, response) => {
+    const id = Number(request.params.id)
+    notes = phonebook.filter(note => note.id !== id)
+
+    response.status(204).end()
+    console.log(phonebook)
+})
+
+const generateId = () => {
+    const maxId = phonebook.length > 0
+        ? Math.max(...phonebook.map(n => n.id))
+        : 0
+    return maxId + 1
+}
+
+app.post('/api/persons', (request, response) => {
+    const body = request.body
+    console.log(body)
+
+    if (!body.name) {
+        return response.status(400).json({
+            error: 'name missing'
+        })
+    }
+    else if (!body.number) {
+        return response.status(400).json(
+            { error: 'number missing' })
+    }
+
+
+
+
+
+    const note = {
+        id: generateId(),
+        content: body.content,
+        name: body.name,
+        number: body.number,
+    }
+
+    phonebook = phonebook.concat(note)
+
+    response.json(note)
 })
